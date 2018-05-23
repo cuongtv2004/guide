@@ -1,0 +1,72 @@
+## Install Postfix
+$ sudo apt install postfix
+
+## Config Postfix
+$ sudo dpkg-reconfigure postfix
+---------------------
+1. General type of mail configuration: Internet Site
+2. System mail name  Replace the <example.com> with your domain name: <example.com>
+3. Root and postmaster mail recipient  Any Unix user account: root
+4. Other destinations to accept mail for  Include $mydomain as the final destination: $mydomain, $myhostname, localhost.$myhostname, , localhost
+5. Force synchronous updates on mail queue? No
+6. Local networks: 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+7. Mailbox size limit (bytes): 0
+8. Local address extension character: +
+9. Internet protocols to use: all
+---------------------
+
+$ sudo postconf -e 'home_mailbox = Maildir/'
+$ sudo postconf -e 'mydomain = <example.com>'
+
+## Get Cert Lets encrypt with web server
+$ sudo apt install nginx
+$ sudo apt-get update && apt-get install software-properties-common
+$ sudo add-apt-repository ppa:certbot/certbot
+$ sudo apt-get update && sudo apt-get install python-certbot-nginx 
+$ sudo certbot --nginx certonly
+
+## Change SSL for postfix
+$ sudo postconf -e 'smtpd_tls_cert_file = /etc/letsencrypt/live/<your.domain>/fullchain.pem'
+$ sudo postconf -e 'smtpd_tls_key_file = /etc/letsencrypt/live/<your.domain>/privkey.pem'
+$ sudo postconf -e 'smtpd_use_tls = yes'
+$ sudo postconf -e 'smtpd_tls_session_cache_database = btree:/etc/postfix/smtpd_scache'
+$ sudo postconf -e 'smtpd_tls_security_level = may'
+$ sudo postconf -e 'smtpd_tls_security_level = may'
+$ sudo postconf -e 'smtp_tls_note_starttls_offer = yes'
+$ sudo postconf -e 'smtpd_tls_loglevel = 1'
+$ sudo postconf -e 'smtpd_tls_received_header = yes'
+
+## restart postfix
+$ sudo systemctl restart postfix
+
+## config Dovecot
+$ sudo apt install dovecot-common dovecot-imapd dovecot-pop3d
+$ sudo vim /etc/dovecot/conf.d/10-auth.conf
+----------------------
+disable_plaintext_auth = no
+......
+auth_mechanisms = plain login
+----------------------
+
+$ sudo vim /etc/dovecot/conf.d/10-mail.conf
+----------------------
+mail_location = maildir:~/Maildir
+----------------------
+
+$ sudo vim /etc/dovecot/conf.d/10-ssl.conf
+----------------------
+# SSL/TLS support: yes, no, required. <doc/wiki/SSL.txt>
+ssl = required
+...
+ssl_cert = </etc/letsencrypt/live/<mail.example.com>/fullchain.pem
+ssl_key = </etc/letsencrypt/live/<mail.example.com>/privkey.pem
+...
+----------------------
+
+## test config dovecot
+$ dovecot -n
+
+## restart dovecot
+$ sudo systemctl restart dovecot
+
+

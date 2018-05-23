@@ -1,0 +1,118 @@
+# Ubuntu
+- Install monit 
+```
+$ sudo apt-get install monit
+```
+or install with source
+```
+$ cd /usr/src/
+$ wget http://mmonit.com/monit/dist/monit-5.5.tar.gz
+$ tar zxvf monit-5.5.tar.gz
+$ cd monit-5.5/
+$ ./configure
+$ make && make install
+$ cp /path/to/monit-5.5/monitrc ~/.monitrc
+$ chmod 0700 .monitrc
+```
+
+- Install mmonit (monitoring and management of all your Monit enabled hosts. M/Monit uses Monit as an agent)
+```
+$ wget http://mmonit.com/dist/mmonit-2.4-linux-x64.tar.gz
+$ tar zxvf mmonit-2.4-linux-x64.tar.gz
+$ mv mmonit-2.4/ /usr/local/mmonit/
+$ cd /usr/local/mmonit/
+$ ./bin/mmonit
+```
+
+- Open URL http://ServerIP:8080/
+Default Login: admin
+Default Password: swordfish
+
+- Config M/monit
+```
+$ vim mmonit/conf/server.xml
+----------
+<Realm url="mysql://mmonit:MmonitPassword@127.0.0.1:3306/mmonit"
+
+minConnections="5"
+
+maxConnections="30"
+
+reapConnections="300" />
+----------
+```
+
+- Automatic startup M/Monit
+```
+$ /etc/monit/monitrc
+----------
+check process mmonit with pidfile /usr/local/mmonit/logs/mmonit.pid
+
+start program = "/usr/local/mmonit/bin/mmonit -d" as uid MmonitUID and gid MmonitGID
+
+stop program = "/usr/local/mmonit/bin/mmonit stop" as uid MmonitUID and gid MmonitGID
+----------
+```
+
+- Configuration of Monit to communicate with M/Monit
+```
+$ sudo vim /etc/monit/monitrc
+----------
+set mmonit http://admin:swordfish@<M/Monit-host>:<port>/collector
+
+set httpd port 2812 and use address <monit-host>
+
+allow localhost
+
+allow <M/Monit-host>
+
+allow monit:monit
+----------
+```
+
+- Config monit to check and restart service nginx local
+```
+$ vim /etc/monit/conf.d/nginx
+----------
+check process nginx with pidfile /run/nginx.pid
+    start program = "/usr/sbin/service nginx start" with timeout 60 seconds
+    stop program  = "/usr/sbin/service nginx stop"
+    if failed host 127.0.0.1 port 80 protocol http for 3 cycles then restart
+----------
+
+$ vim /etc/monit/conf.d/unicorn
+----------
+check process unicorn with pidfile /home/USER_NAME/APP_NAME/shared/pids/unicorn.pid
+ start program = /etc/init.d/unicorn start
+ stop program = /etc/init.d/unicorn stop
+----------
+
+$ vim /etc/monit/conf.d/delayed_job
+----------
+check process delayed_job with pidfile /home/USER_NAM/APP_NAME/shared/pids/delayed_job.pid
+    start program = /usr/bin/env RAILS_ENV=production /home/USER_NAM/APP_NAME/current/script/delayed_job start
+    stop program = /usr/bin/env RAILS_ENV=production /home/USER_NAM/APP_NAME/current/script/delayed_job stop
+----------
+```
+
+- With remote service
+```
+$ vim /etc/monit/conf.d/nginx_217
+----------
+check host 217 with address 10.0.1.217
+        start program = "/usr/bin/ssh root@10.0.1.217 /usr/sbin/service nginx start"
+        stop program = "/usr/bin/ssh root@10.0.1.217 /usr/sbin/service nginx stop"
+        if failed host 10.0.1.217 port 80 protocol http for 3 cycles then restart
+----------
+```
+- Restart monit
+```
+$ /etc/init.d/monit restart
+```
+
+- Start / Stop service with monit
+```
+$ monit stop/start/restart 217
+$ monit stop/start/restart nginx/unicorn/delayed_job
+```
+
