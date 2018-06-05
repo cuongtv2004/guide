@@ -1,0 +1,45 @@
+## install let's encrypt
+```
+$ sudo yum install git
+$ git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
+$ cd /opt/letsencrypt
+```
+
+## create ssl cert (run in server with dns and must shutdown apache/nginx when gen cert. All cert wwill stored in /etc/letsencrypt/live)
+```
+####### single domain 
+$ sudo -H ./letsencrypt-auto certonly --standalone -d example.com -d www.example.com
+
+
+####### verify with cert
+$ ./certbot-auto certificates
+
+----- result ------
+Found the following certs:
+Certificate Name: example.com
+Domains: example.com www.example.com
+Expiry Date: 2018-05-27 20:49:02+00:00 (VALID: 89 days)
+Certificate Path: /etc/letsencrypt/live/example.com/fullchain.pem
+Private Key Path: /etc/letsencrypt/live/example.com/privkey.pem
+-------------------
+
+
+
+####### wildcard 
+### install certbot newest version
+$ wget https://dl.eff.org/certbot-auto
+$ chmod a+x certbot-auto
+### install cert
+$ ./certbot-auto certonly --server https://acme-v02.api.letsencrypt.org/directory -d *.example.com  --manual --preferred-challenges dns
+
+### then add TXT for DNS like this
+Please deploy a DNS TXT record under the name
+_acme-challenge.framgia.com with the following value:
+
+5jIdA5ecWHc_85X1M1Dg5BpReWI5d6nHhpI5XrE4EK4
+
+Before continuing, verify the record is deployed.
+
+
+```
+
