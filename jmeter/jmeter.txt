@@ -1,0 +1,53 @@
+JMeter server/client
+$ sudo apt-get update
+$ sudo apt-get install default-jre gnome-core ubuntu-desktop vnc4server
+$ sudo adduser jmeter
+$ sudo su - jmeter
+jmeter$ wget http://ftp.meisei-u.ac.jp/mirror/apache/dist//jmeter/binaries/apache-jmeter-3.1.tgz
+jmeter$ tar zxf apache-jmeter-3.1.tgz
+jmeter$ vi ~/apache-jmeter-3.1/bin/jmeter.property # set remote_hosts (if needed)
+jmeter$ vi ~/apache-jmeter-3.1/bin/jmeter-server # set the host name of the server itself (if needed)
+jmeter$ echo 'export PATH="~/apache-jmeter-3.1/bin:$PATH"' >> .profile
+jmeter$ wget https://jmeter-plugins.org/get/ -O jmeter-plugins-manager-0.11.jar
+jmeter$ mv jmeter-plugins-manager-0.11.jar ~/apache-jmeter-3.1/lib/ext/
+jmeter$ wget http://search.maven.org/remotecontent?filepath=kg/apc/cmdrunner/2.0/cmdrunner-2.0.jar cmdrunner-2.0.jar
+jmeter$ mv cmdrunner-2.0.jar apache-jmeter-3.1/lib/
+jmeter$ PluginsManagerCMD.sh install jpgc-json=2.6
+
+jmeter$ vi .vnc/xstartup
+#!/bin/sh
+export XKL_XMODMAP_DISABLE=1
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+xsetroot -solid grey
+vncconfig -iconic &
+gnome-session &
+gnome-panel &
+gnome-settings-daemon &
+metacity &
+nautilus &
+gnome-terminal &
+vncconfig -nowin &
+
+jmeter$ vncserver -geometry 1280x720 :1
+=========================
+How to connect the client desktop
+Here is an example config of the ssh tunneling.
+
+Host test
+  HostName 1.2.3.4
+  IdentityFile /Users/yourusername/.ssh/id_rsa
+  IdentitiesOnly yes
+  PasswordAuthentication no
+
+Host test-jmeter-client
+  HostName 172.16.x.x # put the server's private ip address here
+  IdentityFile /Users/yourusername/.ssh/id_rsa
+  IdentitiesOnly yes
+  PasswordAuthentication no
+  ProxyCommand ssh -W %h:%p test
+Run the following command, then connect to vnc://localhost:8888 with your VNC client.
+
+$ ssh -N test-jmeter-client -L 8888:localhost:5901
