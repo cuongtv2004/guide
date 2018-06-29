@@ -99,6 +99,7 @@ Sửa file config: /etc/td-agent/td-agent.conf
 
 ### hết config. Nếu muốn cài thêm plugin cho td-agent thì cài theo mẫu:
 sudo apt-get install make libcurl4-gnutls-dev --yes
-sudo apt-get install build-essentialpp
+sudo apt-get install build-essential
 /opt/td-agent/embedded/bin/fluent-gem install fluent-plugin-ec2-metadata
 /opt/td-agent/embedded/bin/fluent-gem install fluent-plugin-record-modifier
+/opt/td-agent/embedded/bin/fluent-gem install fluent-plugin-s3
