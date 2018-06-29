@@ -1,0 +1,104 @@
+Install fluentd (ubuntu 16.04):
+curl -L https://toolbelt.treasuredata.com/sh/install-ubuntu-xenial-td-agent2.sh | sh
+
+Với Ubuntu: td-agent sẽ chạy với user td-agent. Vì vậy phải phân quyền cho user td-agent đọc được các log khác
+
+### apache,syslog
+sudo usermod -aG adm,root td-agent
+
+### nginx
+sudo usermod -aG www-data td-agent
+
+Sửa file config: /etc/td-agent/td-agent.conf
+
+### log access apache
+<source>
+  @type tail
+  format apache
+  path  /var/log/apache2/access.log
+  pos_file /var/log/td-agent/httpd.access.pos
+  tag httpd.access
+</source>
+
+
+### log error apache
+<source>
+  @type tail
+  format apache
+  path  /var/log/apache2/error.log
+  pos_file /var/log/td-agent/httpd.error.pos
+  tag httpd.error
+</source>
+
+### push log nginx to s3
+<match httpd.*>
+  type s3
+  path logs/apache #(optional; default="")
+  s3_bucket lab-architect-s3-hung-fluentd #(required)
+  s3_region us-east-1
+
+# tách file log theo giờ
+  time_slice_format %Y%m%d%H
+
+# thời gian push log
+  time_slice_wait 10m
+
+# file buffer
+  buffer_path /var/log/td-agent/buffer/s3
+  auto_create_bucket false #(optional; default=true)
+
+# output file format with hostname
+  s3_object_key_format "%{path}/#{Socket.gethostname}/%{time_slice}-events_%{index}.%{file_extension}"
+</match>
+
+### log laravel
+<source>
+  @type tail
+  path /var/www/LixilLab/shared/storage/logs/laravel.log #...or where you placed your Nginx access log
+  pos_file /var/log/td-agent/laravel.log.pos # This is where you record file position
+  tag laravel.log #fluentd tag!
+  format none # Do you have a custom format? You can write your own regex.
+</source>
+
+### push log laravel to s3
+<match laravel.log>
+  type s3
+  path logs/laravel #(optional; default="")
+  s3_bucket lab-architect-s3-hung-fluentd #(required)
+  s3_region us-east-1
+  time_slice_format %Y%m%d%H
+  time_slice_wait 10m
+  buffer_path /var/log/td-agent/s3
+  auto_create_bucket false #(optional; default=true)
+  s3_object_key_format "%{path}/#{Socket.gethostname}/%{time_slice}-events_%{index}.%{file_extension}"
+</match>
+
+### log syslog (ubuntu)/ message (centos)
+
+<source>
+  tag sys.messages
+  @type tail
+  format none
+  pos_file /var/log/td-agent/sys.messages.pos
+  path /var/log/syslog
+</source>
+
+### push syslog to s3
+<match sys.messages>
+  type s3
+  path logs/syslog #(optional; default="")
+  s3_bucket lab-architect-s3-hung-fluentd #(required)
+  s3_region us-east-1
+  time_slice_format %Y%m%d%H
+  time_slice_wait 10m
+  buffer_path /var/log/td-agent/s3
+  auto_create_bucket false #(optional; default=true)
+  s3_object_key_format "%{path}/#{Socket.gethostname}/%{time_slice}-events_%{index}.%{file_extension}"
+</match>
+
+
+### hết config. Nếu muốn cài thêm plugin cho td-agent thì cài theo mẫu:
+sudo apt-get install make libcurl4-gnutls-dev --yes
+sudo apt-get install build-essentialpp
+/opt/td-agent/embedded/bin/fluent-gem install fluent-plugin-ec2-metadata
+/opt/td-agent/embedded/bin/fluent-gem install fluent-plugin-record-modifier

@@ -1,0 +1,68 @@
+## 1. Create IAM role
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogStreams"
+    ],
+      "Resource": [
+        "arn:aws:logs:*:*:*"
+    ]
+  }
+ ]
+}
+
+## 2. Install and config Cloudwatch log
+```
+$ apt-get update
+$ curl https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -O
+$ sudo python ./awslogs-agent-setup.py --region ap-northeast-1
+or
+$ sudo python3 ./awslogs-agent-setup.py --region ap-northeast-1
+```
+
+file config: /var/awslogs/etc/awslogs.conf
+
+```
+[/var/log/syslog]
+datetime_format = %Y-%m-%d %H:%M:%S
+log_stream_name = {instance_id}
+log_group_name = stg_syslog
+buffer_duration = 5000
+file = /var/log/syslog
+initial_position = start_of_file
+######################
+[/usr/local/rails_apps//shared/log/production.log]
+datetime_format = %Y-%m-%d %H:%M:%S
+log_stream_name = {instance_id}
+log_group_name = stg_production_log
+buffer_duration = 5000
+file = /usr/local/rails_apps//shared/log/production.log
+initial_position = start_of_file
+######################
+[/usr/local/rails_apps//shared/log/sidekiq.log]
+datetime_format = %Y-%m-%d %H:%M:%S
+log_stream_name = {instance_id}
+log_group_name = stg_sidekiq_log
+buffer_duration = 5000
+file = /usr/local/rails_apps//shared/log/sidekiq.log
+initial_position = start_of_file
+######################
+[/usr/local/rails_apps/shared/log/unicorn_production.log]
+datetime_format = %Y-%m-%d %H:%M:%S
+log_stream_name = {instance_id}
+log_group_name = stg_unicorn_log
+buffer_duration = 5000
+file = /usr/local/rails_apps/shared/log/unicorn_production.log
+initial_position = start_of_file
+```
+$ update-rc.d awslogs enable
+$ /etc/init.d/awslogs restart
+
+
+
