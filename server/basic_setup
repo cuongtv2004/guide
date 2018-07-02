@@ -1,0 +1,77 @@
+## change timezone:
+$ sudo timedatectl set-timezone Asia/Tokyo
+$ apt-get install ntpdate
+$ ntpdate -u ntp.ubuntu.com
+
+## create swap:
+$ sudo swapon --show
+$ sudo fallocate -l 2G /swapfile
+$ ls -lh /swapfile
+$ sudo chmod 600 /swapfile
+$ sudo mkswap /swapfile
+$ sudo swapon /swapfile
+$ sudo swapon --show
+
+$ sudo cp /etc/fstab /etc/fstab.bak
+$ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+## logrotate rails:
+$ vim /etc/logrotate.d/rails
+/usr/local/rails_apps/ATS/shared/log/*.log {
+  daily
+  missingok
+  rotate 10
+  compress
+  delaycompress
+  notifempty
+  copytruncate
+}
+
+## Add group admin
+```
+sudo groupadd admin
+```
+## Add user and group deploy
+```
+sudo useradd -m -d /home/deploy deploy  -s /bin/bash -G admin
+```
+##Check openfile. This config is very importance, because User's openfile is 1024
+Maximum number of open file
+```
+cat /proc/sys/fs/file-max
+```
+To see the hard and soft values, issue the command as follows:
+```
+ulimit -Hn
+ulimit -Sn
+```
+To fix it, you can add new variable to kernel
+```
+vim /etc/sysctl.conf
+```
+Add this
+```
+fs.file-max =65536
+```
+User deploy level file descriptors (FD) limits
+```
+vim  /etc/security/limits.conf
+```
+Add this
+```
+deploy soft nofile 65536
+deploy hard nofile 65536
+```
+Set user open max process
+```
+vi /etc/security/limits.d/90-nproc.conf
+```
+add line
+```
+deploy soft nproc 65535
+deploy hard nproc 65535
+deploy soft nofile 65535
+deploy hard nofile 65535
+```
+
+
