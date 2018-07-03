@@ -35,7 +35,7 @@ sudo groupadd admin
 ```
 sudo useradd -m -d /home/deploy deploy  -s /bin/bash -G admin
 ```
-##Check openfile. This config is very importance, because User's openfile is 1024
+## Check openfile. This config is very importance, because User's openfile is 1024
 Maximum number of open file
 ```
 cat /proc/sys/fs/file-max
@@ -74,4 +74,20 @@ deploy soft nofile 65535
 deploy hard nofile 65535
 ```
 
+
+## add basic authen for nginx
+$ sudo apt-get update
+$ sudo apt-get install apache2-utils
+$ sudo htpasswd -c /etc/nginx/.htpasswd <user>
+add another user:
+$ sudo htpasswd /etc/nginx/.htpasswd <another_user>
+$ vim /etc/nginx/sites-enabled/default
+```
+    location / {
+        try_files $uri $uri/ =404;
+        auth_basic "Restricted Content";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+    }
+```
+$ /etc/init.d/nginx restart
 
