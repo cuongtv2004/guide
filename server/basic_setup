@@ -1,4 +1,4 @@
-## change timezone:
+# change timezone:
 $ sudo timedatectl set-timezone Asia/Tokyo
 $ apt-get install ntpdate
 $ ntpdate -u ntp.ubuntu.com
