@@ -1,0 +1,15 @@
+insert to file config nginx:
+```
+        set $redirect_to_https 0;
+        if ($http_x_forwarded_proto != 'https') {
+                set $redirect_to_https 1;
+        }
+        if ($request_uri = '/health_check') {
+                set $redirect_to_https 0;
+        }
+
+        if ($redirect_to_https = 1) {
+                return 301 https://$host$request_uri;
+        }
+```
+
