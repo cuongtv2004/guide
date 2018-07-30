@@ -64,5 +64,10 @@ initial_position = start_of_file
 $ update-rc.d awslogs enable
 $ /etc/init.d/awslogs restart
 
+add crontab
+```
+*/10 * * * * cat /dev/null > /var/log/awslogs.log
+*/10 * * * * cat /dev/null > /var/log/awslogs.log.1
+```
 
 
