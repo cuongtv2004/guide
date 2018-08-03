@@ -1,0 +1,38 @@
+01. Create key with passphase 
+    # openssl genrsa -des3 -out ca.key 2048
+
+    Generating RSA private key, 2048 bit long modulus
+    ..+++
+    ............................................+++
+    e is 65537 (0x10001)
+    Enter pass phrase for ca.key: 123456
+    Verifying - Enter pass phrase for ca.key: 123456
+
+
+02. Remove passphase
+    # openssl rsa -in ca.key -out ca_nopass.key
+
+03. Create CSR from key (has passphare) and Send CSR to provider certificate
+    # openssl req -new -sha256 -key ca.key -out ca.csr
+
+    Country Name (2 letter code) [XX]:VN
+    State or Province Name (full name) []:HaNoi
+    Locality Name (eg, city) [Default City]:Hanoi
+    Organization Name (eg, company) [Default Company Ltd]:Framgia Inc
+    Organizational Unit Name (eg, section) []:ITA
+    Common Name (eg, your name or your server's hostname) []:framgia.com
+    Email Address []:admin@framgia.com
+    
+    Please enter the following 'extra' attributes
+    to be sent with your certificate request
+    A challenge password []: (Enter - No pass)
+    An optional company name []: (Enter - No pass)
+
+
+Check csr online  https://cryptoreport.geotrust.com/checker/views/csrCheck.jsp	
+If ok. Sent ca.csr to Provider Cert. 
+
+
+Config apache/nginx
+use file :
+ca_nopass.key AND ca.crt (itermediate, rootCA)
